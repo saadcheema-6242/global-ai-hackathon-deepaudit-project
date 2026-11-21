@@ -8,6 +8,16 @@
 <h3 align="center">Real-Time AI Hallucination & Fact Verification Engine</h3>
 
 <p align="center">
+  <a href="https://global-ai-hackathon-deepaudit-proje.vercel.app/">
+    <img src="https://img.shields.io/badge/🚀_Live_Demo-Open_App-000000?style=for-the-badge" alt="Live Demo" />
+  </a>
+</p>
+
+<p align="center">
+  <b>🌐 Live demo:</b> <a href="https://global-ai-hackathon-deepaudit-proje.vercel.app/">global-ai-hackathon-deepaudit-proje.vercel.app</a>
+</p>
+
+<p align="center">
   <i>Built for the <b>HackCulture Global AI Hackathon</b> by Geek Room</i>
 </p>
 
