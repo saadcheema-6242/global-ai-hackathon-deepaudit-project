@@ -12,14 +12,61 @@ import {
 } from "@/lib/claim-extractor";
 import { AuditReport, ClaimVerification } from "@/lib/types";
 
+// ── Abuse controls ──
+// Each request can trigger 1 LLM call + up to 10 Tavily searches on paid
+// keys, so the endpoint is rate-limited and size-capped to prevent an
+// anonymous caller from amplifying cost / exhausting quota.
+const MAX_TEXT_LENGTH = 20_000;
+const RATE_LIMIT_MAX = 10; // requests
+const RATE_LIMIT_WINDOW_MS = 60_000; // per minute, per client
+
+// Simple in-memory fixed-window limiter. Good enough for a single-instance
+// demo; swap for a shared store (e.g. Upstash Redis) in real deployments.
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function getClientId(request: NextRequest): string {
+  const fwd = request.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return request.headers.get("x-real-ip") || "unknown";
+}
+
+function isRateLimited(clientId: string): boolean {
+  const now = Date.now();
+  const bucket = rateBuckets.get(clientId);
+
+  if (!bucket || now > bucket.resetAt) {
+    rateBuckets.set(clientId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  bucket.count += 1;
+  return bucket.count > RATE_LIMIT_MAX;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const clientId = getClientId(request);
+    if (isRateLimited(clientId)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { text } = body;
 
     if (!text || typeof text !== "string" || text.trim().length < 10) {
       return NextResponse.json(
         { error: "Please provide text with at least 10 characters to audit." },
+        { status: 400 }
+      );
+    }
+
+    if (text.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `Text is too long. Please keep it under ${MAX_TEXT_LENGTH.toLocaleString()} characters.`,
+        },
         { status: 400 }
       );
     }

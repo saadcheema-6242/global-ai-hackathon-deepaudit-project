@@ -34,10 +34,10 @@ export default function TrustScoreGauge({ score, size = 200 }: TrustScoreGaugePr
   const cy = size / 2;
 
   const getColor = (s: number) => {
-    if (s >= 75) return "#22c55e"; // green
-    if (s >= 50) return "#eab308"; // yellow
-    if (s >= 25) return "#f97316"; // orange
-    return "#ef4444"; // red
+    if (s >= 75) return "#0a0a0a"; // near-black
+    if (s >= 50) return "#404040"; // dark gray
+    if (s >= 25) return "#737373"; // mid gray
+    return "#a3a3a3"; // light gray
   };
 
   const getLabel = (s: number) => {
@@ -59,7 +59,7 @@ export default function TrustScoreGauge({ score, size = 200 }: TrustScoreGaugePr
           cy={cy}
           r={radius}
           fill="none"
-          stroke="#1e293b"
+          stroke="#e5e5e5"
           strokeWidth="12"
         />
         {/* Animated progress arc */}
@@ -74,7 +74,6 @@ export default function TrustScoreGauge({ score, size = 200 }: TrustScoreGaugePr
           strokeDasharray={`${progress} ${circumference - progress}`}
           strokeDashoffset={circumference / 4}
           className="transition-all duration-500"
-          style={{ filter: `drop-shadow(0 0 8px ${color}80)` }}
         />
         {/* Score text */}
         <text
@@ -93,16 +92,13 @@ export default function TrustScoreGauge({ score, size = 200 }: TrustScoreGaugePr
           y={cy + size / 7}
           textAnchor="middle"
           dominantBaseline="central"
-          fill="#94a3b8"
+          fill="#737373"
           fontSize={size / 14}
         >
           TRUST SCORE
         </text>
       </svg>
-      <span
-        className="text-sm font-medium px-3 py-1 rounded-full"
-        style={{ color, backgroundColor: `${color}15`, border: `1px solid ${color}40` }}
-      >
+      <span className="text-sm font-medium px-3 py-1 rounded-full text-neutral-900 bg-neutral-100 border border-neutral-300">
         {getLabel(animatedScore)}
       </span>
     </div>

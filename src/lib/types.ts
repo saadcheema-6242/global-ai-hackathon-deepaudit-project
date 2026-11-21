@@ -41,12 +41,20 @@ export interface AuditReport {
   bifrostMetrics: BifrostMetrics;
 }
 
+export type GatewayStatus = "live" | "demo" | "error";
+
 export interface BifrostMetrics {
   totalTokensUsed: number;
   totalLatencyMs: number;
   modelUsed: string;
   guardrailsTriggered: string[];
   costEstimateUsd: number;
+  // Whether a real LLM actually answered ("live"), we're intentionally in
+  // demo/simulation ("demo"), or a configured gateway failed and we fell
+  // back to simulation ("error"). Surfaced in the UI so a silent fallback
+  // can't be mistaken for a live result.
+  gatewayStatus: GatewayStatus;
+  gatewayNotice?: string;
 }
 
 export interface AuditPreset {

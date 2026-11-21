@@ -11,38 +11,53 @@ interface ClaimCardProps {
   index: number;
 }
 
+// Only allow http(s) links. Source URLs come from an external search API,
+// so an untrusted "javascript:"/"data:" URL must never reach an <a href>.
+function safeHttpUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? parsed.href
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+// Monochrome status system — differentiated by icon + fill/outline weight,
+// not color, so it reads clearly in the black & white theme.
 const STATUS_CONFIG = {
   verified: {
-    emoji: "🟢",
+    icon: "✓",
     label: "Verified",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/30",
-    text: "text-emerald-400",
-    glow: "shadow-emerald-500/10",
+    card: "border-neutral-300 bg-white",
+    accent: "border-l-neutral-900",
+    pill: "bg-neutral-900 text-white border-neutral-900",
+    value: "text-neutral-900",
   },
   outdated: {
-    emoji: "🟡",
+    icon: "!",
     label: "Outdated",
-    bg: "bg-yellow-500/10",
-    border: "border-yellow-500/30",
-    text: "text-yellow-400",
-    glow: "shadow-yellow-500/10",
+    card: "border-neutral-300 bg-neutral-50",
+    accent: "border-l-neutral-500",
+    pill: "bg-neutral-200 text-neutral-800 border-neutral-400",
+    value: "text-neutral-700",
   },
   hallucinated: {
-    emoji: "🔴",
+    icon: "✕",
     label: "Hallucinated",
-    bg: "bg-red-500/10",
-    border: "border-red-500/30",
-    text: "text-red-400",
-    glow: "shadow-red-500/10",
+    card: "border-neutral-900 bg-neutral-50",
+    accent: "border-l-neutral-900",
+    pill: "bg-white text-neutral-900 border-neutral-900 border-2",
+    value: "text-neutral-900",
   },
   unverifiable: {
-    emoji: "⚪",
+    icon: "?",
     label: "Unverifiable",
-    bg: "bg-slate-500/10",
-    border: "border-slate-500/30",
-    text: "text-slate-400",
-    glow: "shadow-slate-500/10",
+    card: "border-neutral-200 bg-white",
+    accent: "border-l-neutral-300",
+    pill: "bg-neutral-50 text-neutral-500 border-neutral-300",
+    value: "text-neutral-500",
   },
 };
 
@@ -52,25 +67,27 @@ export default function ClaimCard({ verification, index }: ClaimCardProps) {
 
   return (
     <div
-      className={`rounded-xl border ${config.border} ${config.bg} p-4 transition-all duration-300 hover:shadow-lg ${config.glow} cursor-pointer`}
+      className={`rounded-xl border border-l-4 ${config.card} ${config.accent} p-4 transition-all duration-300 hover:shadow-md cursor-pointer`}
       onClick={() => setExpanded(!expanded)}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <span className="text-xl mt-0.5 shrink-0">{config.emoji}</span>
+          <span className="w-6 h-6 mt-0.5 shrink-0 rounded-full border border-neutral-300 flex items-center justify-center text-xs font-bold text-neutral-900">
+            {config.icon}
+          </span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-slate-200 leading-relaxed">
+            <p className="text-sm text-neutral-900 leading-relaxed">
               &ldquo;{verification.claim.text}&rdquo;
             </p>
             <div className="flex items-center gap-2 mt-2">
               <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.bg} ${config.text} border ${config.border}`}
+                className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${config.pill}`}
               >
                 {config.label}
               </span>
-              <span className="text-xs text-slate-500 uppercase tracking-wide">
+              <span className="text-xs text-neutral-500 uppercase tracking-wide">
                 {verification.claim.category}
               </span>
             </div>
@@ -79,74 +96,81 @@ export default function ClaimCard({ verification, index }: ClaimCardProps) {
 
         {/* Confidence badge */}
         <div className="flex flex-col items-center shrink-0">
-          <div
-            className={`text-lg font-bold ${config.text}`}
-          >
+          <div className={`text-lg font-bold ${config.value}`}>
             {verification.confidence}%
           </div>
-          <span className="text-[10px] text-slate-500 uppercase">Confidence</span>
+          <span className="text-[10px] text-neutral-500 uppercase">Confidence</span>
         </div>
       </div>
 
       {/* Expandable details */}
       {expanded && (
-        <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3 animate-fadeIn">
+        <div className="mt-4 pt-4 border-t border-neutral-200 space-y-3 animate-fadeIn">
           {/* Reasoning */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <h4 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
               Analysis
             </h4>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-neutral-700 leading-relaxed">
               {verification.reasoning}
             </p>
           </div>
 
           {/* Corrected Info */}
           {verification.correctedInfo && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-              <h4 className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">
+            <div className="bg-neutral-900 text-white rounded-lg p-3">
+              <h4 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1">
                 ✦ Corrected Information
               </h4>
-              <p className="text-sm text-blue-200">{verification.correctedInfo}</p>
+              <p className="text-sm text-white">{verification.correctedInfo}</p>
             </div>
           )}
 
           {/* Sources */}
           {verification.sources.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
                 Sources ({verification.sources.length})
               </h4>
               <div className="space-y-2">
-                {verification.sources.map((source, i) => (
+                {verification.sources.map((source, i) => {
+                  const safeUrl = safeHttpUrl(source.url);
+                  return (
                   <div
                     key={i}
-                    className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50"
+                    className="bg-neutral-50 rounded-lg p-3 border border-neutral-200"
                   >
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium text-cyan-400 hover:text-cyan-300 hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {source.title}
-                    </a>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                    {safeUrl ? (
+                      <a
+                        href={safeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-neutral-900 underline decoration-neutral-400 hover:decoration-neutral-900"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {source.title}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-medium text-neutral-700">
+                        {source.title}
+                      </span>
+                    )}
+                    <p className="text-xs text-neutral-600 mt-1 line-clamp-2">
                       {source.snippet}
                     </p>
                     <div className="flex items-center gap-3 mt-1.5">
                       {source.publishedDate && (
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-neutral-500">
                           📅 {source.publishedDate}
                         </span>
                       )}
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-neutral-500">
                         Relevance: {(source.score * 100).toFixed(0)}%
                       </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -155,7 +179,7 @@ export default function ClaimCard({ verification, index }: ClaimCardProps) {
 
       {/* Expand indicator */}
       <div className="mt-2 text-center">
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-neutral-500">
           {expanded ? "▲ Collapse" : "▼ Click to expand details & sources"}
         </span>
       </div>

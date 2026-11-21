@@ -19,19 +19,19 @@ export default function SummaryStats({
   unverifiable,
 }: SummaryStatsProps) {
   const stats = [
-    { label: "Total Claims", value: total, color: "text-slate-200", bg: "bg-slate-700/30" },
-    { label: "Verified", value: verified, color: "text-emerald-400", bg: "bg-emerald-500/10" },
-    { label: "Outdated", value: outdated, color: "text-yellow-400", bg: "bg-yellow-500/10" },
-    { label: "Hallucinated", value: hallucinated, color: "text-red-400", bg: "bg-red-500/10" },
-    { label: "Unverifiable", value: unverifiable, color: "text-slate-400", bg: "bg-slate-500/10" },
+    { label: "Total Claims", value: total },
+    { label: "Verified", value: verified },
+    { label: "Outdated", value: outdated },
+    { label: "Hallucinated", value: hallucinated },
+    { label: "Unverifiable", value: unverifiable },
   ];
 
-  // Visual bar
+  // Visual bar (grayscale, darkest = verified → lightest = unverifiable)
   const barSegments = [
-    { count: verified, color: "bg-emerald-500" },
-    { count: outdated, color: "bg-yellow-500" },
-    { count: hallucinated, color: "bg-red-500" },
-    { count: unverifiable, color: "bg-slate-500" },
+    { count: verified, color: "bg-neutral-900" },
+    { count: outdated, color: "bg-neutral-500" },
+    { count: hallucinated, color: "bg-neutral-700" },
+    { count: unverifiable, color: "bg-neutral-300" },
   ];
 
   return (
@@ -41,10 +41,10 @@ export default function SummaryStats({
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className={`${stat.bg} rounded-lg p-3 text-center border border-slate-700/30`}
+            className="bg-neutral-50 rounded-lg p-3 text-center border border-neutral-200"
           >
-            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">
+            <div className="text-2xl font-bold text-neutral-900">{stat.value}</div>
+            <div className="text-[10px] text-neutral-500 uppercase tracking-wider mt-1">
               {stat.label}
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function SummaryStats({
 
       {/* Distribution bar */}
       {total > 0 && (
-        <div className="h-3 rounded-full bg-slate-800 overflow-hidden flex">
+        <div className="h-3 rounded-full bg-neutral-100 overflow-hidden flex border border-neutral-200">
           {barSegments.map((seg, i) =>
             seg.count > 0 ? (
               <div

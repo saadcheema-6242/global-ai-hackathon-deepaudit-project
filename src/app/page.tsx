@@ -12,6 +12,46 @@ import BifrostMetricsPanel from "@/components/BifrostMetricsPanel";
 import { AuditReport } from "@/lib/types";
 import { AUDIT_PRESETS } from "@/lib/presets";
 
+// End-to-end pipeline, surfaced on the UI so anyone can see exactly how a
+// submission flows from raw text to a verified trust report.
+const PIPELINE = [
+  {
+    step: "1",
+    emoji: "📝",
+    title: "Input",
+    desc: "Paste any AI output, article, or research summary.",
+    tech: "Your text",
+  },
+  {
+    step: "2",
+    emoji: "🧠",
+    title: "Extract Claims",
+    desc: "An LLM pulls out every verifiable factual claim.",
+    tech: "Bifrost AI Gateway",
+  },
+  {
+    step: "3",
+    emoji: "🔎",
+    title: "Verify Sources",
+    desc: "Each claim is checked against the live web in parallel.",
+    tech: "Tavily Search API",
+  },
+  {
+    step: "4",
+    emoji: "📊",
+    title: "Score",
+    desc: "Claims are labelled verified / outdated / hallucinated.",
+    tech: "Scoring engine",
+  },
+  {
+    step: "5",
+    emoji: "✅",
+    title: "Trust Report",
+    desc: "A 0–100 trust score with per-claim evidence.",
+    tech: "Exportable JSON",
+  },
+];
+
 export default function Home() {
   const [inputText, setInputText] = useState("");
   const [report, setReport] = useState<AuditReport | null>(null);
@@ -70,38 +110,84 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-white text-neutral-900">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
         {/* ── Hero Section ── */}
         <div className="text-center space-y-3">
-          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-900">
             Verify Any AI-Generated Text in Seconds
           </h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">
+          <p className="text-neutral-600 max-w-2xl mx-auto">
             Paste any LLM output, article, or research summary. DeepAudit extracts
             factual claims, verifies each one against real-time web sources via{" "}
-            <span className="text-cyan-400 font-medium">Tavily Search API</span>, and
-            routes through{" "}
-            <span className="text-purple-400 font-medium">Bifrost AI Gateway</span> for
+            <span className="font-semibold text-neutral-900">Tavily Search API</span>, and
+            routes through the{" "}
+            <span className="font-semibold text-neutral-900">Bifrost AI Gateway</span> for
             secure, observable AI processing.
           </p>
         </div>
 
+        {/* ── End-to-End Pipeline ── */}
+        <section className="border border-neutral-200 rounded-2xl p-6 bg-neutral-50">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-900">
+              How it works — end to end
+            </h3>
+            <span className="text-xs text-neutral-500">
+              Tavily × Bifrost × Next.js
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {PIPELINE.map((p, i) => (
+              <div key={p.step} className="relative">
+                <div className="h-full bg-white border border-neutral-200 rounded-xl p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-neutral-900 text-white text-xs font-bold flex items-center justify-center">
+                      {p.step}
+                    </span>
+                    <span className="text-lg">{p.emoji}</span>
+                  </div>
+                  <div className="text-sm font-semibold text-neutral-900 mt-1">
+                    {p.title}
+                  </div>
+                  <p className="text-xs text-neutral-600 leading-snug">{p.desc}</p>
+                  <div className="mt-auto pt-2">
+                    <span className="inline-block text-[10px] font-medium uppercase tracking-wide text-neutral-700 bg-neutral-100 border border-neutral-200 rounded-full px-2 py-0.5">
+                      {p.tech}
+                    </span>
+                  </div>
+                </div>
+                {/* Connector arrow between steps on large screens */}
+                {i < PIPELINE.length - 1 && (
+                  <span className="hidden lg:block absolute top-1/2 -right-2.5 -translate-y-1/2 text-neutral-300 text-lg z-10">
+                    →
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-neutral-500 mt-4">
+            🔒 Hardened: rate-limited API, input-size caps, URL-scheme validation, and
+            server-only API keys. Runs in demo mode with zero keys, or live with Tavily +
+            any OpenAI-compatible LLM endpoint.
+          </p>
+        </section>
+
         {/* ── Preset Buttons ── */}
         <div className="flex flex-wrap justify-center gap-3">
-          <span className="text-xs text-slate-500 self-center mr-1">Try a demo:</span>
+          <span className="text-xs text-neutral-500 self-center mr-1">Try a demo:</span>
           {AUDIT_PRESETS.map((preset) => (
             <button
               key={preset.id}
               onClick={() => handlePreset(preset.text)}
               disabled={loading}
-              className="group px-4 py-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white hover:border-slate-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group px-4 py-2 rounded-lg bg-white border border-neutral-200 text-sm text-neutral-700 hover:bg-neutral-100 hover:border-neutral-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="mr-1.5">{preset.emoji}</span>
               {preset.label}
-              <span className="block text-[10px] text-slate-500 group-hover:text-slate-400 mt-0.5">
+              <span className="block text-[10px] text-neutral-500 group-hover:text-neutral-700 mt-0.5">
                 {preset.description}
               </span>
             </button>
@@ -109,24 +195,24 @@ export default function Home() {
         </div>
 
         {/* ── Input Area ── */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
-          <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 space-y-4 shadow-sm">
+          <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
             <span>📝</span> Paste AI-generated text, article, or any content to audit:
           </label>
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Paste any text here... For example, an AI-generated article, ChatGPT response, code documentation, or research summary."
-            className="w-full h-40 bg-slate-800/80 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 resize-y focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/40 transition-all"
+            className="w-full h-40 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 resize-y focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all"
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-neutral-500">
               {inputText.length} characters
             </span>
             <button
               onClick={() => runAudit(inputText)}
               disabled={loading || inputText.trim().length < 10}
-              className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 flex items-center gap-2"
+              className="px-6 py-2.5 bg-neutral-900 text-white font-semibold rounded-xl hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {loading ? (
                 <>
@@ -161,7 +247,7 @@ export default function Home() {
 
         {/* ── Error ── */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400 text-sm">
+          <div className="bg-neutral-100 border border-neutral-300 rounded-xl p-4 text-neutral-800 text-sm">
             ⚠️ {error}
           </div>
         )}
@@ -185,11 +271,11 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleExport}
-                    className="text-xs px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
+                    className="text-xs px-4 py-2 bg-white border border-neutral-300 rounded-lg text-neutral-700 hover:bg-neutral-100 transition-all"
                   >
                     📥 Export Report (JSON)
                   </button>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-neutral-500">
                     Audit ID: {report.id}
                   </span>
                 </div>
@@ -201,7 +287,7 @@ export default function Home() {
 
             {/* Individual Claim Cards */}
             <div className="space-y-3">
-              <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
                 <span>📋</span> Claim-by-Claim Analysis
               </h3>
               {report.claims.map((v, i) => (
@@ -212,18 +298,18 @@ export default function Home() {
         )}
 
         {/* ── Footer ── */}
-        <footer className="border-t border-slate-800 pt-8 pb-4 text-center space-y-2">
-          <p className="text-xs text-slate-500">
+        <footer className="border-t border-neutral-200 pt-8 pb-4 text-center space-y-2">
+          <p className="text-xs text-neutral-500">
             Built for the{" "}
-            <span className="text-slate-400 font-medium">
+            <span className="text-neutral-800 font-medium">
               HackCulture Global AI Hackathon
             </span>{" "}
             by Geek Room
           </p>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-neutral-400">
             Powered by{" "}
-            <span className="text-cyan-500">Tavily Search API</span> •{" "}
-            <span className="text-purple-500">Bifrost (Maxim AI) Gateway</span> •{" "}
+            <span className="text-neutral-700">Tavily Search API</span> •{" "}
+            <span className="text-neutral-700">Bifrost (Maxim AI) Gateway</span> •{" "}
             Next.js • TypeScript
           </p>
         </footer>

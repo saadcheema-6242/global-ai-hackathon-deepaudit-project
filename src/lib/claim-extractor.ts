@@ -4,8 +4,111 @@
 
 import { ExtractedClaim, ClaimVerification, TavilySource, VerificationStatus } from "./types";
 import { searchTavily } from "./tavily";
+import { callThroughBifrost, isLLMConfigured } from "./bifrost";
 
 let claimCounter = 0;
+
+const VALID_STATUSES: VerificationStatus[] = [
+  "verified",
+  "outdated",
+  "hallucinated",
+  "unverifiable",
+];
+
+// Pull the first JSON object out of an LLM response (handles ```json fences
+// and stray prose around the object).
+function extractJsonObject(raw: string): unknown {
+  const fenced = raw.replace(/```(?:json)?/gi, "").trim();
+  const start = fenced.indexOf("{");
+  const end = fenced.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) throw new Error("no json object");
+  return JSON.parse(fenced.slice(start, end + 1));
+}
+
+function clampConfidence(value: unknown, fallback: number): number {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+// Professional verification: the LLM reads the retrieved sources and rules on
+// the claim, instead of guessing from relevance scores. This is what prevents
+// a false claim from being rubber-stamped "verified" just because the sources
+// are topically relevant. Returns null on any failure so the caller can fall
+// back to the heuristic scorer.
+async function judgeClaimWithLLM(
+  claim: ExtractedClaim,
+  sources: TavilySource[],
+  answer?: string
+): Promise<{
+  status: VerificationStatus;
+  confidence: number;
+  reasoning: string;
+  correctedInfo?: string;
+} | null> {
+  const sourcesText = sources
+    .map(
+      (s, i) =>
+        `[${i + 1}] ${s.title}${s.publishedDate ? ` (${s.publishedDate})` : ""}\n${s.snippet}`
+    )
+    .join("\n\n");
+
+  const prompt = `You are a rigorous fact-checker. Decide whether the CLAIM is supported by the SOURCES below. Judge ONLY against the evidence in the sources — do not use outside knowledge.
+
+CLAIM:
+"${claim.text}"
+
+SOURCES:
+${sourcesText}
+${answer ? `\nSEARCH SUMMARY: ${answer}` : ""}
+
+Classify the claim as exactly one of:
+- "verified": the sources clearly support the claim.
+- "hallucinated": the sources clearly contradict the claim, or it is fabricated/false. If the claim states a specific fact (a place, name, date, or number) that the sources contradict, choose this.
+- "outdated": the claim was once true but the sources show it has since changed.
+- "unverifiable": the sources do not give enough evidence to decide either way.
+
+Respond with ONLY a JSON object, no markdown:
+{"status":"verified|outdated|hallucinated|unverifiable","confidence":<0-100 integer>,"reasoning":"1-2 sentences citing the evidence","correctedInfo":"the correct fact if hallucinated or outdated, otherwise empty"}`;
+
+  try {
+    const res = await callThroughBifrost({
+      prompt,
+      systemPrompt:
+        "You are a precise fact-checking judge. You evaluate a claim strictly against provided sources and output only valid JSON.",
+      temperature: 0,
+      maxTokens: 500,
+    });
+
+    const parsed = extractJsonObject(res.content) as {
+      status?: string;
+      confidence?: unknown;
+      reasoning?: string;
+      correctedInfo?: string;
+    };
+
+    const status = VALID_STATUSES.includes(parsed.status as VerificationStatus)
+      ? (parsed.status as VerificationStatus)
+      : "unverifiable";
+
+    const correctedInfo =
+      parsed.correctedInfo && parsed.correctedInfo.trim().length > 0
+        ? parsed.correctedInfo.trim()
+        : undefined;
+
+    return {
+      status,
+      confidence: clampConfidence(parsed.confidence, status === "unverifiable" ? 35 : 80),
+      reasoning:
+        (parsed.reasoning && parsed.reasoning.trim()) ||
+        "Judged against the retrieved web sources.",
+      correctedInfo,
+    };
+  } catch {
+    // Any LLM/parse failure → let the heuristic scorer decide instead.
+    return null;
+  }
+}
 
 export function parseClaimsFromLLMResponse(llmOutput: string): ExtractedClaim[] {
   try {
@@ -45,20 +148,28 @@ export async function verifyClaim(claim: ExtractedClaim): Promise<ClaimVerificat
     includeAnswer: true,
   });
 
-  // Score the claim against retrieved sources
-  const { status, confidence, reasoning, correctedInfo } = scoreClaim(
-    claim,
-    sources,
-    answer
-  );
+  // Preferred path: a real LLM reads the sources and judges the claim.
+  // Falls back to the heuristic scorer if no LLM is configured or the call
+  // fails, so the pipeline always returns a result.
+  let result:
+    | { status: VerificationStatus; confidence: number; reasoning: string; correctedInfo?: string }
+    | null = null;
+
+  if (isLLMConfigured() && sources.length > 0) {
+    result = await judgeClaimWithLLM(claim, sources, answer);
+  }
+
+  if (!result) {
+    result = scoreClaim(claim, sources, answer);
+  }
 
   return {
     claim,
-    status,
-    confidence,
+    status: result.status,
+    confidence: result.confidence,
     sources,
-    reasoning,
-    correctedInfo,
+    reasoning: result.reasoning,
+    correctedInfo: result.correctedInfo,
   };
 }
 

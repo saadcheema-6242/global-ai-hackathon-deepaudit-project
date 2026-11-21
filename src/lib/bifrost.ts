@@ -2,7 +2,7 @@
 // DeepAudit AI — Bifrost (Maxim AI) Gateway Integration
 // ============================================================
 
-import { BifrostMetrics } from "./types";
+import { BifrostMetrics, GatewayStatus } from "./types";
 
 interface BifrostRequest {
   prompt: string;
@@ -14,6 +14,14 @@ interface BifrostRequest {
 interface BifrostResponse {
   content: string;
   metrics: BifrostMetrics;
+}
+
+// True when a real LLM endpoint (not demo simulation) is configured.
+// Used to decide whether we can run real LLM-as-judge verification.
+export function isLLMConfigured(): boolean {
+  const key = process.env.BIFROST_API_KEY;
+  const url = process.env.BIFROST_GATEWAY_URL;
+  return Boolean(key && url && key !== "demo");
 }
 
 // Bifrost Gateway proxy for LLM calls with guardrails & observability
@@ -58,20 +66,55 @@ export async function callThroughBifrost(request: BifrostRequest): Promise<Bifro
             modelUsed: data.model || "bifrost-routed",
             guardrailsTriggered: detectGuardrails(request.prompt),
             costEstimateUsd: estimateCost(data.usage?.total_tokens || 500),
+            gatewayStatus: "live",
           },
         };
       }
+
+      // Configured but the gateway rejected the request — DON'T hide it.
+      const bodyText = await response.text().catch(() => "");
+      const detail = bodyText.slice(0, 160).replace(/\s+/g, " ").trim();
+      console.error(`Bifrost gateway HTTP ${response.status}: ${detail}`);
+      return simulateBifrostResponse(
+        request,
+        startTime,
+        "error",
+        `LLM gateway returned HTTP ${response.status}${
+          detail ? ` — ${detail}` : ""
+        }. Showing simulated results.`
+      );
     } catch (error) {
-      console.error("Bifrost gateway error, falling back to simulation:", error);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error("Bifrost gateway unreachable, falling back to simulation:", msg);
+      return simulateBifrostResponse(
+        request,
+        startTime,
+        "error",
+        `LLM gateway unreachable (${msg}). Showing simulated results.`
+      );
     }
   }
 
-  // Smart simulation mode
-  return simulateBifrostResponse(request, startTime);
+  // Intentional demo / simulation mode (no real key configured).
+  return simulateBifrostResponse(
+    request,
+    startTime,
+    "demo",
+    "Demo mode — no LLM key configured. Results use local simulation."
+  );
 }
 
-// Bifrost smart model routing: select model based on complexity
+// Bifrost smart model routing: select model based on complexity.
+// Model names are env-configurable so the same code works against any
+// OpenAI-compatible endpoint (OpenAI, Groq, Gemini compat, self-hosted
+// Bifrost, …). Defaults preserve the original OpenAI behavior.
+//   BIFROST_MODEL       → model for high-risk / complex prompts
+//   BIFROST_MODEL_FAST  → cheap model for low-risk prompts
 function selectModel(prompt: string): string {
+  const strictModel = process.env.BIFROST_MODEL || "gpt-4o";
+  const fastModel =
+    process.env.BIFROST_MODEL_FAST || process.env.BIFROST_MODEL || "gpt-4o-mini";
+
   const complexityIndicators = [
     "medical",
     "legal",
@@ -84,10 +127,7 @@ function selectModel(prompt: string): string {
     prompt.toLowerCase().includes(word)
   );
 
-  if (isHighRisk) {
-    return "gpt-4o"; // Route to strict reasoning model
-  }
-  return "gpt-4o-mini"; // Fast, cheap model for low-risk extractions
+  return isHighRisk ? strictModel : fastModel;
 }
 
 // Detect potential guardrail triggers
@@ -120,13 +160,19 @@ function estimateCost(tokens: number): number {
 
 function simulateBifrostResponse(
   request: BifrostRequest,
-  startTime: number
+  startTime: number,
+  gatewayStatus: GatewayStatus,
+  gatewayNotice: string
 ): BifrostResponse {
   const latency = Date.now() - startTime + 150 + Math.random() * 100;
   const model = selectModel(request.prompt);
 
-  // Extract claims from the prompt using pattern matching (simulation)
-  const text = request.prompt;
+  // Extract claims from the USER's text only (strip out the system prompt wrapper)
+  let text = request.prompt;
+  const textMatch = text.match(/TEXT TO ANALYZE:\s*"{3}\s*([\s\S]*?)\s*"{3}/);
+  if (textMatch) {
+    text = textMatch[1];
+  }
   const claims = extractClaimsSimulated(text);
 
   return {
@@ -134,9 +180,11 @@ function simulateBifrostResponse(
     metrics: {
       totalTokensUsed: estimateTokens(request.prompt) + estimateTokens(JSON.stringify(claims)),
       totalLatencyMs: Math.round(latency),
-      modelUsed: `${model} (via Bifrost Gateway)`,
+      modelUsed: `${model} (simulated)`,
       guardrailsTriggered: detectGuardrails(request.prompt),
       costEstimateUsd: estimateCost(estimateTokens(request.prompt) * 2),
+      gatewayStatus,
+      gatewayNotice,
     },
   };
 }
@@ -153,12 +201,23 @@ function extractClaimsSimulated(text: string): Array<{ text: string; category: s
   for (const sentence of sentences) {
     const lower = sentence.toLowerCase();
 
-    // Skip obvious non-claims
+    // Skip obvious non-claims and LLM instructions
     if (
       lower.startsWith("please") ||
       lower.startsWith("can you") ||
       lower.startsWith("i think") ||
-      lower.startsWith("in my opinion")
+      lower.startsWith("in my opinion") ||
+      lower.startsWith("you are") ||
+      lower.startsWith("analyze") ||
+      lower.startsWith("extract") ||
+      lower.startsWith("output only") ||
+      lower.startsWith("for each") ||
+      lower.startsWith("only extract") ||
+      lower.startsWith("skip opinions") ||
+      lower.includes("json array") ||
+      lower.includes("no markdown") ||
+      lower.includes("text to analyze") ||
+      lower.includes("verifiable factual claims")
     ) {
       continue;
     }
