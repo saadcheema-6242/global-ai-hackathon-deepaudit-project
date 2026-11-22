@@ -175,6 +175,50 @@ export default function Home() {
           </p>
         </section>
 
+        {/* ── Judges' Resources ── */}
+        <section className="border border-neutral-900 rounded-2xl p-6 bg-neutral-900 text-white">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-300">
+                For the Judges
+              </h3>
+              <p className="text-lg font-semibold mt-1">
+                Project documentation & pitch deck
+              </p>
+              <p className="text-sm text-neutral-300 mt-1 max-w-xl">
+                Full technical write-up (architecture, modules, security) and the
+                presentation slides — built in ~5 hours after a late start, grounded in the
+                Tavily Search API.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 shrink-0">
+              <a
+                href="/slides.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-white text-neutral-900 font-semibold rounded-xl hover:bg-neutral-200 transition-all text-sm"
+              >
+                🖥️ View Slides
+              </a>
+              <a
+                href="/documentation.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-neutral-800 text-white font-semibold rounded-xl border border-neutral-600 hover:bg-neutral-700 transition-all text-sm"
+              >
+                📖 Read Documentation
+              </a>
+              <a
+                href="/DeepAudit-AI-Presentation.pptx"
+                download
+                className="px-4 py-2.5 text-neutral-300 underline decoration-neutral-600 hover:text-white transition-all text-sm self-center"
+              >
+                .pptx
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* ── Preset Buttons ── */}
         <div className="flex flex-wrap justify-center gap-3">
           <span className="text-xs text-neutral-500 self-center mr-1">Try a demo:</span>

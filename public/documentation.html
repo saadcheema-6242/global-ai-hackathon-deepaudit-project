@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DeepAudit AI — Documentation</title>
+<style>
+  :root { --ink:#0a0a0a; --mut:#525252; --line:#e5e5e5; --bg:#ffffff; --panel:#f7f7f8; --cyan:#0891b2; --code:#f4f4f5; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.65; }
+  .topbar { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.85); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line); }
+  .topbar .inner { max-width:900px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; }
+  .logo { width:34px; height:34px; border-radius:9px; background:#0a0a0a; color:#fff; display:grid; place-items:center; font-weight:800; font-size:14px; }
+  .actions a { font-size:13px; text-decoration:none; color:var(--ink); border:1px solid var(--line); padding:7px 12px; border-radius:9px; margin-left:8px; white-space:nowrap; }
+  .actions a:hover { background:var(--panel); border-color:#bdbdbd; }
+  .actions a.primary { background:#0a0a0a; color:#fff; border-color:#0a0a0a; }
+  .wrap { max-width:900px; margin:0 auto; padding:40px 24px 80px; }
+  h1 { font-size:2.1rem; line-height:1.2; margin:.2em 0 .4em; letter-spacing:-.01em; }
+  h2 { font-size:1.45rem; margin:2em 0 .6em; padding-top:.4em; border-top:1px solid var(--line); }
+  h3 { font-size:1.12rem; margin:1.4em 0 .4em; }
+  p, li { color:#1c1c1c; }
+  a { color:var(--cyan); }
+  code { background:var(--code); padding:.12em .4em; border-radius:5px; font-size:.88em;
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; }
+  pre { background:#0b1221; color:#e2e8f0; padding:16px 18px; border-radius:12px; overflow:auto; font-size:.82rem; line-height:1.5; }
+  pre code { background:none; padding:0; color:inherit; }
+  blockquote { margin:1.2em 0; padding:12px 18px; background:var(--panel); border-left:3px solid var(--cyan); border-radius:0 10px 10px 0; color:#333; }
+  blockquote p { margin:.3em 0; }
+  table { border-collapse:collapse; width:100%; margin:1.2em 0; font-size:.92rem; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--panel); font-weight:700; }
+  tr:nth-child(even) td { background:#fafafa; }
+  hr { border:none; border-top:1px solid var(--line); margin:2.4em 0; }
+  .ribbon { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:28px; }
+  .ribbon b { color:#0a0a0a; }
+  footer { max-width:900px; margin:0 auto; padding:24px; color:var(--mut); font-size:.85rem; border-top:1px solid var(--line); }
+  @media (max-width:560px){ .actions a span{ display:none } }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <div class="brand"><span class="logo">DA</span> DeepAudit&nbsp;AI — Docs</div>
+      <div class="actions">
+        <a href="/DeepAudit-AI-Presentation.pptx" download>⬇ <span>Slides (.pptx)</span></a>
+        <a href="/DeepAudit-AI-Documentation.md" download>⬇ <span>Markdown</span></a>
+        <a class="primary" href="/">← <span>Back to App</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="ribbon">📄 <b>Full technical documentation</b> for DeepAudit AI — generated from a complete source-code review. Use the buttons above to download the slide deck or the raw Markdown.</div>
+    <h1>DeepAudit AI — Technical Documentation</h1>
+<p><strong>Real-Time AI Hallucination &amp; Fact-Verification Engine</strong></p>
+<p>Built for the <strong>HackCulture Global AI Hackathon</strong> (by Geek Room).
+Repository: <code>github.com/saadcheema-6242/global-ai-hackathon-deepaudit-project</code>
+Live demo: <code>https://global-ai-hackathon-deepaudit-proje.vercel.app/</code></p>
+<hr>
+<h2>1. Executive Summary</h2>
+<p>DeepAudit AI is a web application that takes any block of AI-generated text (an LLM answer, an article, documentation, a research summary) and automatically checks whether the factual claims inside it are <strong>true, outdated, hallucinated, or unverifiable</strong>.</p>
+<p>It does this in four stages:</p>
+<ol>
+<li><strong>Extract</strong> atomic factual claims from the input text.</li>
+<li><strong>Verify</strong> each claim against the live web using the <strong>Tavily Search API</strong>.</li>
+<li><strong>Score</strong> each claim (verified / outdated / hallucinated / unverifiable) with a confidence value.</li>
+<li><strong>Report</strong> the result as an interactive dashboard with a 0–100 <strong>Trust Score</strong>, per-claim evidence, source citations, and an exportable JSON report.</li>
+</ol>
+<p>A key design decision: the app runs fully in <strong>demo / simulation mode with zero API keys</strong>, so judges can open the live link and immediately see the complete flow without any setup. When real keys are supplied, the same code path upgrades to live web search and live LLM judging.</p>
+<blockquote>
+<p><strong>Note on scope and timeline.</strong> This project was built in roughly <strong>5 hours</strong> because the team joined the hackathon late. The original plan was to route all LLM calls through the <strong>Bifrost (Maxim AI) gateway</strong>, but that integration could not be completed inside the time window. The LLM-gateway layer was therefore implemented as a <strong>provider-agnostic, OpenAI-compatible wrapper that runs in demo/simulation mode by default</strong>, and the <strong>real, working sponsor integration delivered is Tavily Search API</strong>, which powers the actual fact-checking.</p>
+</blockquote>
+<hr>
+<h2>2. Problem Statement</h2>
+<p>Large Language Models produce fluent, confident text that frequently contains:</p>
+<ul>
+<li><strong>Hallucinated facts</strong> — statements that sound real but are fabricated.</li>
+<li><strong>Outdated information</strong> — deprecated APIs, superseded events, stale numbers.</li>
+<li><strong>Unverifiable claims</strong> — assertions with no authoritative backing.</li>
+</ul>
+<p>Spell-checkers, linters, and unit tests catch syntax and logic errors but <strong>cannot catch semantic inaccuracy</strong>. Manual fact-checking is slow and does not scale. DeepAudit AI automates that fact-checking loop and grounds every verdict in real web sources.</p>
+<hr>
+<h2>3. System Architecture</h2>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│                  CLIENT (Next.js + Tailwind)                  │
+│   Text input · 1-click presets · Trust gauge · Claim cards    │
+│   · Summary stats · Gateway metrics panel · JSON export       │
+└───────────────┬──────────────────────────────▲───────────────┘
+                │ POST /api/audit               │ AuditReport JSON
+                ▼                               │
+┌──────────────────────────────────────────────────────────────┐
+│            AUDIT ENGINE  (Next.js API Route)                  │
+│                                                               │
+│  Step 1  Claim Extraction  ── via LLM gateway wrapper ──┐     │
+│          (text → atomic factual claims as JSON)          │    │
+│                                                          ▼    │
+│  Step 2  Tavily Search  ◄── one query per claim, in parallel │
+│          (real-time web grounding + citations)           │    │
+│                                                          ▼    │
+│  Step 3  Verification Scoring                                 │
+│          claim + sources → status + confidence + reasoning   │
+│          🟢 verified  🟡 outdated  🔴 hallucinated  ⚪ unverifiable │
+│                                                          ▼    │
+│  Step 4  Trust Score aggregation (0–100)                      │
+└──────────────────────────────────────────────────────────────┘
+        │                                   │
+        ▼                                   ▼
+  LLM GATEWAY WRAPPER                  TAVILY SEARCH API
+  (OpenAI-compatible;                 (live web search;
+   demo mode by default,              demo simulation when
+   &quot;Bifrost / Maxim AI&quot; layer)        no key is set)
+</code></pre>
+<h3>Request lifecycle</h3>
+<ol>
+<li>The browser <code>POST</code>s <code>{ text }</code> to <code>/api/audit</code>.</li>
+<li>The route enforces <strong>rate limiting</strong> (10 req/min per client) and <strong>input size caps</strong> (max 20,000 chars; min 10 chars).</li>
+<li>The text is sent to the <strong>LLM gateway wrapper</strong> (<code>callThroughBifrost</code>) with a claim-extraction prompt.</li>
+<li>Extracted claims are parsed to a typed array.</li>
+<li>Every claim is verified <strong>concurrently</strong> (<code>Promise.all</code>) against Tavily.</li>
+<li>Each claim is scored (by an LLM judge when a live key exists, otherwise by a deterministic heuristic scorer).</li>
+<li>An overall <strong>Trust Score</strong> is computed and the full <code>AuditReport</code> is returned as JSON and rendered.</li>
+</ol>
+<hr>
+<h2>4. Tech Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Framework</td>
+<td>Next.js 16 (App Router), React 19, TypeScript 5</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Tailwind CSS 4 (Turbopack), custom CSS animations</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Next.js API Routes (server-side)</td>
+</tr>
+<tr>
+<td>Web search</td>
+<td><strong>Tavily Search API</strong> (<code>api.tavily.com/search</code>, <code>search_depth: advanced</code>)</td>
+</tr>
+<tr>
+<td>LLM gateway</td>
+<td>OpenAI-compatible wrapper (branded &quot;Bifrost / Maxim AI&quot;); demo mode by default</td>
+</tr>
+<tr>
+<td>Deployment</td>
+<td>Vercel</td>
+</tr>
+</tbody></table>
+<p>The LLM wrapper is deliberately provider-agnostic — the same code targets OpenAI, Groq, Google Gemini&#39;s compatibility endpoint, or a self-hosted gateway, selected entirely through environment variables.</p>
+<hr>
+<h2>5. Project Structure</h2>
+<pre><code>deepaudit-ai/
+├── src/
+│   ├── app/
+│   │   ├── api/audit/route.ts      # Main audit endpoint (orchestrator)
+│   │   ├── layout.tsx              # Root layout + SEO metadata
+│   │   ├── page.tsx                # Dashboard UI (client component)
+│   │   └── globals.css             # Theme + animations
+│   ├── components/
+│   │   ├── Header.tsx              # App header + sponsor badges
+│   │   ├── TrustScoreGauge.tsx     # Animated SVG 0–100 gauge
+│   │   ├── ClaimCard.tsx           # Expandable per-claim card + sources
+│   │   ├── SummaryStats.tsx        # Aggregate counts + distribution bar
+│   │   └── BifrostMetricsPanel.tsx # Gateway observability panel
+│   └── lib/
+│       ├── types.ts                # Shared TypeScript types
+│       ├── tavily.ts               # Tavily integration + demo simulation
+│       ├── bifrost.ts              # LLM gateway wrapper + demo simulation
+│       ├── claim-extractor.ts      # Parsing, LLM judge, heuristic scorer
+│       └── presets.ts              # Demo presets for judges
+├── .env.example                    # Documented env vars (all optional)
+├── package.json
+└── README.md
+</code></pre>
+<hr>
+<h2>6. Core Modules — Detailed</h2>
+<h3>6.1 <code>lib/types.ts</code> — Data contracts</h3>
+<p>Central type definitions shared across front-end and back-end:</p>
+<ul>
+<li><strong><code>VerificationStatus</code></strong> — <code>&quot;verified&quot; | &quot;outdated&quot; | &quot;hallucinated&quot; | &quot;unverifiable&quot;</code>.</li>
+<li><strong><code>ExtractedClaim</code></strong> — <code>{ id, text, category }</code> where category ∈ factual / statistical / temporal / technical / attribution.</li>
+<li><strong><code>TavilySource</code></strong> — <code>{ title, url, snippet, publishedDate?, score }</code>.</li>
+<li><strong><code>ClaimVerification</code></strong> — a claim plus its <code>status</code>, <code>confidence</code> (0–100), <code>sources[]</code>, <code>reasoning</code>, and optional <code>correctedInfo</code>.</li>
+<li><strong><code>AuditReport</code></strong> — the full response: input text, timestamp, all claim verifications, overall trust score, per-status counts, and gateway metrics.</li>
+<li><strong><code>BifrostMetrics</code></strong> — <code>{ totalTokensUsed, totalLatencyMs, modelUsed, guardrailsTriggered[], costEstimateUsd, gatewayStatus, gatewayNotice? }</code>. <code>gatewayStatus</code> is <code>&quot;live&quot; | &quot;demo&quot; | &quot;error&quot;</code> and is surfaced in the UI so a silent simulation can never be mistaken for a live result.</li>
+</ul>
+<h3>6.2 <code>app/api/audit/route.ts</code> — Orchestrator</h3>
+<p>The single backend endpoint. Responsibilities:</p>
+<ul>
+<li><strong>Abuse controls:</strong> in-memory fixed-window rate limiter (10 requests / 60s keyed on <code>x-forwarded-for</code> / <code>x-real-ip</code>), and a 20,000-character input cap.</li>
+<li><strong>Validation:</strong> rejects text under 10 characters or over the cap with clear <code>400</code> messages.</li>
+<li><strong>Pipeline:</strong> builds the extraction prompt → calls the gateway → parses claims → verifies all claims in parallel → computes the trust score → assembles and returns the <code>AuditReport</code>.</li>
+<li><strong>Error handling:</strong> returns friendly, non-leaking error messages with proper HTTP status codes (<code>400</code>, <code>429</code>, <code>500</code>).</li>
+</ul>
+<h3>6.3 <code>lib/tavily.ts</code> — Real-time web grounding (primary sponsor integration)</h3>
+<ul>
+<li>Calls <code>https://api.tavily.com/search</code> with <code>search_depth: &quot;advanced&quot;</code>, <code>max_results: 5</code>, <code>include_answer: true</code>.</li>
+<li>Maps Tavily results into the internal <code>TavilySource</code> shape (title, url, 300-char snippet, publication date, relevance score) and returns Tavily&#39;s synthesized <code>answer</code>.</li>
+<li><strong>Graceful degradation:</strong> if no key is set (<code>demo</code>), the HTTP call fails, or the response is not OK, it falls back to <code>simulateTavilySearch()</code> — a hand-built knowledge base with realistic, cited responses for the demo scenarios (Next.js RSC, OpenAI/Sam Altman, Python 3.13 GIL, SpaceX/Mars) plus a sensible generic fallback. This is what makes the zero-key demo convincing.</li>
+</ul>
+<h3>6.4 <code>lib/bifrost.ts</code> — LLM gateway wrapper</h3>
+<ul>
+<li><code>callThroughBifrost()</code> sends an OpenAI-style <code>/chat/completions</code> request to any configured endpoint with a bearer key.</li>
+<li><strong>Smart model routing</strong> (<code>selectModel</code>): prompts containing high-risk words (medical, legal, financial, security, vulnerability, compliance) route to a stricter model; everything else routes to a cheaper/faster model. Model names are env-configurable (<code>BIFROST_MODEL</code>, <code>BIFROST_MODEL_FAST</code>).</li>
+<li><strong>Guardrail detection</strong> (<code>detectGuardrails</code>): flags prompt-injection patterns (&quot;ignore instructions&quot;), credential-leak risk (password / api_key / secret), and context overflow (&gt;10k chars).</li>
+<li><strong>Observability:</strong> returns token usage, latency, model used, estimated cost, and a <code>gatewayStatus</code>.</li>
+<li><strong>Honest fallback:</strong> if the gateway is configured but returns an HTTP error or is unreachable, it falls back to simulation but marks <code>gatewayStatus: &quot;error&quot;</code> with a visible notice — never silently pretending a simulated result is live. With no key, status is <code>&quot;demo&quot;</code>.</li>
+</ul>
+<blockquote>
+<p>This is the layer that was <strong>planned to run on Bifrost (Maxim AI)</strong> but, due to the late start and 5-hour limit, ships in <strong>demo/simulation mode</strong>. The abstraction is intact, so pointing it at a real gateway is a configuration change, not a code change.</p>
+</blockquote>
+<h3>6.5 <code>lib/claim-extractor.ts</code> — Parsing + judging + scoring</h3>
+<p>Three responsibilities:</p>
+<ol>
+<li><strong><code>parseClaimsFromLLMResponse</code></strong> — robustly parses the model&#39;s JSON array of claims, with a sentence-splitting fallback if the output isn&#39;t valid JSON.</li>
+<li><strong><code>judgeClaimWithLLM</code></strong> (preferred path, live mode only) — an <strong>LLM-as-judge</strong>: the model reads the retrieved Tavily sources and rules strictly on the claim (verified / outdated / hallucinated / unverifiable) with confidence, reasoning, and corrected info. This prevents a false claim from being rubber-stamped just because sources are topically relevant. Returns <code>null</code> on any failure to trigger the fallback.</li>
+<li><strong><code>scoreClaim</code></strong> (heuristic fallback, demo mode) — a deterministic scorer using: top/average source relevance, contradiction keywords (&quot;not&quot;, &quot;never&quot;, &quot;deprecated&quot;, &quot;no longer&quot;…), temporal staleness detection (year regex vs. current year), and a few curated patterns for the demo presets (RSC &quot;deprecated&quot;, Python GIL &quot;removed&quot;, SpaceX &quot;landed on Mars&quot;).</li>
+</ol>
+<p><strong><code>calculateOverallTrustScore</code></strong> aggregates per-claim verdicts using status weights (verified 1.0, outdated 0.4, unverifiable 0.3, hallucinated 0.0) multiplied by each claim&#39;s confidence, producing a 0–100 score.</p>
+<h3>6.6 <code>lib/presets.ts</code> — Judge-friendly demos</h3>
+<p>Three one-click scenarios:</p>
+<ul>
+<li><strong>💻 Tech Hallucination</strong> — expects RSC-deprecation claim to be flagged 🔴 Hallucinated.</li>
+<li><strong>📰 Outdated Information</strong> — expects the Python-GIL / SpaceX-Mars claims to be flagged 🟡 Outdated / 🔴 Hallucinated.</li>
+<li><strong>✅ Verified Claims</strong> — mostly true statements that should come back 🟢 Verified.</li>
+</ul>
+<hr>
+<h2>7. Front-End Components</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Header</code></td>
+<td>Sticky header, logo, live-pulse dot, Tavily + Bifrost sponsor badges.</td>
+</tr>
+<tr>
+<td><code>page.tsx</code></td>
+<td>Dashboard: hero, 5-step pipeline explainer, preset buttons, textarea with character counter, loading state, results, JSON export, footer.</td>
+</tr>
+<tr>
+<td><code>TrustScoreGauge</code></td>
+<td>Animated SVG circular gauge (ease-out cubic over 1.2s) with contextual labels (&quot;Highly Trustworthy&quot; → &quot;Likely Unreliable&quot;).</td>
+</tr>
+<tr>
+<td><code>SummaryStats</code></td>
+<td>5-cell count grid (total / verified / outdated / hallucinated / unverifiable) plus a grayscale distribution bar.</td>
+</tr>
+<tr>
+<td><code>ClaimCard</code></td>
+<td>Expandable card per claim: status pill, category, confidence %, analysis, corrected info, and clickable sources. <strong>Validates every source URL to <code>http(s)</code> only</strong> before rendering an anchor.</td>
+</tr>
+<tr>
+<td><code>BifrostMetricsPanel</code></td>
+<td>Live/Demo/Error badge, status notice, tokens / latency / model / cost tiles, and guardrail chips.</td>
+</tr>
+</tbody></table>
+<p><strong>Theme:</strong> a deliberately monochrome (&quot;cyber mono&quot;) black-and-white design. Status is distinguished by icon and border weight rather than color, keeping it legible and accessible.</p>
+<hr>
+<h2>8. Security &amp; Hardening</h2>
+<p>Despite the 5-hour build, several production-minded safeguards are in place:</p>
+<ul>
+<li><strong>Rate limiting</strong> — 10 requests/minute per client on the audit endpoint.</li>
+<li><strong>Input size caps</strong> — 20,000-character maximum; 10-character minimum.</li>
+<li><strong>Server-only secrets</strong> — all API keys are read from server-side <code>process.env</code>; nothing is exposed to the browser.</li>
+<li><strong>URL-scheme validation</strong> — source links from the external search API are parsed and allowed only if <code>http:</code>/<code>https:</code>, blocking <code>javascript:</code> / <code>data:</code> injection via an <code>&lt;a href&gt;</code>.</li>
+<li><strong>Honest gateway status</strong> — simulated or failed results are explicitly labeled in the UI; a fallback can never masquerade as a live LLM verdict.</li>
+<li><strong>Guardrail detection</strong> — prompt-injection, credential-leak, and context-overflow heuristics on every prompt.</li>
+<li><strong>Safe error messages</strong> — internal errors return generic messages without leaking stack traces.</li>
+</ul>
+<hr>
+<h2>9. Configuration (Environment Variables)</h2>
+<p>All variables are <strong>optional</strong> — the app runs in demo mode with none set.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>TAVILY_API_KEY</code></td>
+<td>Tavily Search key. <code>demo</code> or unset → simulated search.</td>
+</tr>
+<tr>
+<td><code>BIFROST_API_KEY</code></td>
+<td>LLM gateway key. <code>demo</code> or unset → simulated LLM.</td>
+</tr>
+<tr>
+<td><code>BIFROST_GATEWAY_URL</code></td>
+<td>OpenAI-compatible <code>/chat/completions</code> endpoint.</td>
+</tr>
+<tr>
+<td><code>BIFROST_MODEL</code></td>
+<td>Model for high-risk / complex prompts (default <code>gpt-4o</code>).</td>
+</tr>
+<tr>
+<td><code>BIFROST_MODEL_FAST</code></td>
+<td>Cheap model for low-risk prompts (default <code>gpt-4o-mini</code>).</td>
+</tr>
+</tbody></table>
+<p>The wrapper works against OpenAI, Groq, Gemini&#39;s compat endpoint, or a self-hosted gateway — pick one and copy its quick-config into <code>.env.local</code>.</p>
+<hr>
+<h2>10. Running Locally</h2>
+<pre><code class="language-bash">git clone https://github.com/saadcheema-6242/global-ai-hackathon-deepaudit-project.git
+cd global-ai-hackathon-deepaudit-project
+npm install
+cp .env.example .env.local   # optional — demo mode needs no keys
+npm run dev                  # http://localhost:3000
+</code></pre>
+<p>Then open the app and click a preset, or paste your own text and press <strong>Run Deep Audit</strong>.</p>
+<hr>
+<h2>11. What Was Planned vs. Delivered (5-Hour Reality)</h2>
+<table>
+<thead>
+<tr>
+<th>Planned</th>
+<th>Delivered</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Route all LLM calls through <strong>Bifrost (Maxim AI)</strong> gateway</td>
+<td>Provider-agnostic gateway <strong>wrapper</strong> with routing, guardrails, and observability — running in <strong>demo/simulation mode</strong> (Bifrost not wired up in time)</td>
+</tr>
+<tr>
+<td>Live LLM claim extraction + LLM-as-judge</td>
+<td>Code path exists and activates with a real key; demo uses a deterministic heuristic scorer</td>
+</tr>
+<tr>
+<td><strong>Tavily Search API</strong> for web grounding</td>
+<td>✅ <strong>Delivered</strong> — the real, working fact-checking integration</td>
+</tr>
+<tr>
+<td>Interactive trust report</td>
+<td>✅ Delivered — gauge, claim cards, sources, metrics, JSON export</td>
+</tr>
+<tr>
+<td>Deployed, zero-setup demo</td>
+<td>✅ Delivered — live on Vercel, works with no keys</td>
+</tr>
+</tbody></table>
+<p><strong>Honest framing for judges:</strong> given the late entry and 5-hour window, the team prioritized a fully working, end-to-end, deployable demo grounded in <strong>Tavily</strong> over a half-finished Bifrost integration. The gateway abstraction is production-shaped so Bifrost can be dropped in later via configuration alone.</p>
+<hr>
+<h2>12. Known Limitations &amp; Honest Disclosures</h2>
+<p>This was a <strong>~5-hour, late-start build</strong>. In the interest of transparency:</p>
+<ol>
+<li><strong>Bifrost not wired up</strong> — the LLM gateway runs in <strong>demo/simulation mode by default</strong>; without a real LLM key, extraction and judging use a deterministic heuristic rather than a true LLM.</li>
+<li><strong>Demo mode is simulated</strong> — with no Tavily/LLM keys, results come from a built-in knowledge base tuned for the preset scenarios; arbitrary text gets a generic fallback verdict.</li>
+<li><strong>Heuristic scorer is approximate</strong> — relies on source relevance, contradiction keywords, and curated preset patterns; can mislabel nuanced claims.</li>
+<li><strong>In-memory rate limiter</strong> — resets on restart and isn&#39;t shared across serverless instances.</li>
+<li><strong>No persistence</strong> — audit history isn&#39;t stored; reports are export-only JSON.</li>
+<li><strong>Trust score is a heuristic aggregate, not proof of truth</strong> — always verify critical claims manually.</li>
+<li><strong>Scope caps</strong> — up to 10 claims per audit; 20,000-character input cap; English-focused.</li>
+<li><strong>Third-party dependency</strong> — live mode depends on Tavily / the chosen LLM provider&#39;s availability and cost.</li>
+<li><strong>Not a replacement for professional fact-checking.</strong></li>
+</ol>
+<h2>13. Credits</h2>
+<p><strong>Built by Muhammad Saad Cheema</strong> — <a href="https://github.com/saadcheema-6242">@saadcheema-6242</a>.
+Solo project, designed and built in <strong>~5 hours</strong> after a late entry to the <strong>HackCulture Global AI Hackathon</strong> (by Geek Room). Sponsor tech: <strong>Tavily Search API</strong> (delivered, live) and <strong>Bifrost / Maxim AI</strong> gateway (planned, demo mode).</p>
+<h2>14. Future Work</h2>
+<ul>
+<li>Wire the gateway to a live <strong>Bifrost (Maxim AI)</strong> endpoint and enable true LLM-as-judge verification.</li>
+<li>Persist audit history (Postgres / Upstash) and shareable report links.</li>
+<li>Replace the in-memory rate limiter with a shared store (Upstash Redis) for multi-instance deployments.</li>
+<li>Batch / stream claim verification for large documents.</li>
+<li>Browser extension to audit any page or chatbot answer in place.</li>
+</ul>
+<hr>
+<p><em>Documentation generated from a full source-code review of the repository.</em></p>
+
+  </div>
+  <footer>DeepAudit AI · Built for the HackCulture Global AI Hackathon · Powered by Tavily Search API</footer>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DeepAudit AI — Slides</title>
+<style>
+  :root{
+    --navy:#0b1221; --navy2:#131e33; --ink:#0a0a0a; --white:#fff; --panel:#f4f6f8;
+    --mut:#64748b; --slate:#94a3b8; --line:#e2e8f0;
+    --cyan:#22d3ee; --violet:#8b5cf6; --green:#34d399; --amber:#fbbf24; --red:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#05080f;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  /* 16:9 scaled canvas */
+  #deck{position:relative;width:1280px;height:720px;transform-origin:center center}
+  .slide{position:absolute;inset:0;padding:56px 64px;display:none;flex-direction:column;overflow:hidden}
+  .slide.active{display:flex}
+  .light{background:var(--white);color:var(--ink)}
+  .dark{background:var(--navy);color:var(--white)}
+  .eyebrow{font-size:14px;font-weight:800;letter-spacing:3px;text-transform:uppercase}
+  h1{font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.01em;margin-top:8px}
+  .big{font-size:76px;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  .sub{font-size:22px;font-weight:500}
+  .muted{color:var(--mut)} .slatetx{color:var(--slate)}
+  .row{display:flex;gap:18px} .col{display:flex;flex-direction:column}
+  .grow{flex:1}
+  .card{border-radius:16px;padding:22px;box-shadow:0 6px 18px rgba(15,23,42,.12)}
+  .card.l{background:#fff;border:1px solid var(--line)}
+  .card.p{background:var(--panel);border:1px solid var(--line)}
+  .card.d{background:var(--navy2)}
+  .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:800}
+  .dot{width:52px;height:52px;font-size:22px;color:var(--navy)}
+  .chip{display:inline-block;padding:9px 16px;border-radius:999px;font-weight:700;font-size:15px;border:1px solid}
+  .pill{display:inline-block;padding:5px 12px;border-radius:999px;font-weight:800;font-size:13px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .foot{position:absolute;left:64px;right:64px;bottom:20px;display:flex;justify-content:space-between;font-size:12px}
+  ul{list-style:none} li{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:16px}
+  li .b{color:var(--cyan);font-weight:800;flex:0 0 auto;margin-top:2px}
+  .k{color:var(--cyan)} .v{color:var(--violet)} .g{color:var(--green)} .a{color:var(--amber)} .r{color:var(--red)}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;background:rgba(148,163,184,.18);padding:2px 7px;border-radius:5px;font-size:.9em}
+  /* nav */
+  #hud{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;z-index:20;
+    background:rgba(11,18,33,.72);backdrop-filter:blur(8px);padding:8px 12px;border-radius:999px;border:1px solid rgba(148,163,184,.3)}
+  #hud button{all:unset;cursor:pointer;color:#cbd5e1;font-size:18px;padding:2px 10px;border-radius:999px}
+  #hud button:hover{background:rgba(148,163,184,.2);color:#fff}
+  #counter{color:#94a3b8;font-size:13px;min-width:48px;text-align:center}
+  #back{position:fixed;top:14px;left:16px;z-index:20;color:#cbd5e1;text-decoration:none;font-size:13px;
+    background:rgba(11,18,33,.72);padding:8px 14px;border-radius:999px;border:1px solid rgba(148,163,184,.3)}
+  #back:hover{color:#fff}
+  .hint{position:fixed;top:14px;right:16px;z-index:20;color:#64748b;font-size:12px}
+</style>
+</head>
+<body>
+<a id="back" href="/">← Back to App</a>
+<div class="hint">← → arrows · click to advance · F fullscreen</div>
+<div id="stage"><div id="deck">
+
+  <!-- 1 TITLE -->
+  <section class="slide dark active">
+    <div class="eyebrow k">HackCulture Global AI Hackathon · by Geek Room</div>
+    <div class="big" style="margin-top:28px">DeepAudit <span class="k">AI</span></div>
+    <div class="sub" style="margin-top:18px;color:#cbd5e1">Real-Time AI Hallucination &amp; Fact-Verification Engine</div>
+    <p class="slatetx" style="max-width:760px;margin-top:16px;font-size:17px;line-height:1.5">
+      Paste any AI-generated text. DeepAudit extracts the factual claims, checks each one against the live web, and returns a 0–100 trust score with evidence.</p>
+    <div style="margin-top:30px;display:flex;gap:14px">
+      <span class="chip" style="border-color:var(--cyan);color:var(--cyan)">Tavily Search API</span>
+      <span class="chip" style="border-color:#fff;color:#fff">Next.js 16 + React 19</span>
+      <span class="chip" style="border-color:var(--amber);color:var(--amber)">Built in ~5 hours</span>
+    </div>
+    <div style="position:absolute;top:70px;right:80px;width:150px;height:150px;border-radius:50%;border:2px solid var(--cyan);display:grid;place-items:center;font-size:66px;color:var(--cyan);font-weight:800">✓</div>
+  </section>
+
+  <!-- 2 PROBLEM -->
+  <section class="slide light">
+    <div class="eyebrow r">The Problem</div>
+    <h1>LLMs sound confident — even when they are wrong</h1>
+    <div class="grid3" style="margin-top:28px">
+      <div class="card l"><div class="badge dot" style="background:var(--red);color:#fff">✕</div><div style="font-size:20px;font-weight:800;margin-top:14px">Hallucinated facts</div><p class="muted" style="margin-top:8px;font-size:15px">Statements that sound real but are completely fabricated.</p></div>
+      <div class="card l"><div class="badge dot" style="background:var(--amber);color:#fff">!</div><div style="font-size:20px;font-weight:800;margin-top:14px">Outdated information</div><p class="muted" style="margin-top:8px;font-size:15px">Deprecated APIs, superseded events, and stale numbers.</p></div>
+      <div class="card l"><div class="badge dot" style="background:var(--slate);color:#fff">?</div><div style="font-size:20px;font-weight:800;margin-top:14px">Unverifiable claims</div><p class="muted" style="margin-top:8px;font-size:15px">Assertions with no authoritative source behind them.</p></div>
+    </div>
+    <div class="card d" style="margin-top:26px;color:#fff">
+      <div class="k" style="font-weight:800;letter-spacing:1.5px;font-size:14px;text-transform:uppercase">Why existing tools miss it</div>
+      <p style="margin-top:8px;font-size:16px;color:#e2e8f0">Spell-checkers, linters, and unit tests catch syntax and logic — not semantic inaccuracy. Manual fact-checking is slow and does not scale. DeepAudit automates that loop and grounds every verdict in real web sources.</p>
+    </div>
+  </section>
+
+  <!-- 3 SOLUTION -->
+  <section class="slide light">
+    <div class="eyebrow k">The Solution</div>
+    <h1>An autonomous four-step fact-checking pipeline</h1>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px">
+      <div class="card p" style="text-align:center"><div class="badge dot" style="background:var(--cyan);margin:0 auto">1</div><div style="font-weight:800;font-size:20px;margin-top:14px">Extract</div><p class="muted" style="margin-top:8px;font-size:14px">An LLM decomposes the text into atomic, checkable claims.</p></div>
+      <div class="card p" style="text-align:center"><div class="badge dot" style="background:var(--violet);color:#fff;margin:0 auto">2</div><div style="font-weight:800;font-size:20px;margin-top:14px">Verify</div><p class="muted" style="margin-top:8px;font-size:14px">Each claim is searched against the live web, in parallel.</p></div>
+      <div class="card p" style="text-align:center"><div class="badge dot" style="background:var(--green);margin:0 auto">3</div><div style="font-weight:800;font-size:20px;margin-top:14px">Score</div><p class="muted" style="margin-top:8px;font-size:14px">Verified, outdated, hallucinated, or unverifiable — with confidence.</p></div>
+      <div class="card p" style="text-align:center"><div class="badge dot" style="background:var(--amber);margin:0 auto">4</div><div style="font-weight:800;font-size:20px;margin-top:14px">Report</div><p class="muted" style="margin-top:8px;font-size:14px">A 0–100 trust score with per-claim evidence and citations.</p></div>
+    </div>
+    <p style="margin-top:28px;text-align:center;font-style:italic;color:var(--mut);font-size:16px">Runs fully in demo mode with zero API keys — the same code upgrades to live search + LLM judging when keys are set.</p>
+  </section>
+
+  <!-- 4 ARCHITECTURE -->
+  <section class="slide dark">
+    <div class="eyebrow k">System Architecture</div>
+    <h1>How a submission flows end to end</h1>
+    <div class="row" style="margin-top:26px">
+      <div class="col grow" style="gap:12px">
+        <div class="card d" style="border:1px solid var(--cyan)"><div style="font-weight:800;font-size:17px">Client — Next.js + Tailwind</div><div class="slatetx" style="font-size:14px;margin-top:4px">Text input · presets · trust gauge · claim cards · metrics · JSON export</div></div>
+        <div style="text-align:center;color:var(--slate);font-size:18px">↓</div>
+        <div class="card d" style="border:1px solid var(--violet)"><div style="font-weight:800;font-size:17px">Audit Engine — /api/audit</div><div class="slatetx" style="font-size:14px;margin-top:4px">Rate-limited orchestrator: extract → verify → score → aggregate</div></div>
+        <div style="text-align:center;color:var(--slate);font-size:18px">↓</div>
+        <div class="card d" style="border:1px solid var(--green)"><div style="font-weight:800;font-size:17px">Verification layer</div><div class="slatetx" style="font-size:14px;margin-top:4px">LLM-as-judge (live) or deterministic heuristic scorer (demo)</div></div>
+      </div>
+      <div class="col" style="flex:0 0 380px;gap:12px">
+        <div class="card" style="background:var(--navy);border:1px solid var(--cyan)"><div style="display:flex;gap:10px;align-items:center"><span style="width:14px;height:14px;border-radius:50%;background:var(--cyan)"></span><b>Tavily Search API</b></div><div class="slatetx" style="font-size:13px;margin-top:8px">Live web grounding + citations. The real fact-checking engine.</div></div>
+        <div class="card" style="background:var(--navy);border:1px solid var(--violet)"><div style="display:flex;gap:10px;align-items:center"><span style="width:14px;height:14px;border-radius:50%;background:var(--violet)"></span><b>LLM Gateway (Bifrost)</b></div><div class="slatetx" style="font-size:13px;margin-top:8px">OpenAI-compatible wrapper. Runs in demo / simulation mode.</div></div>
+        <p style="text-align:center;font-style:italic;color:var(--mut);font-size:12px">Both degrade gracefully to realistic simulation when no key is present.</p>
+      </div>
+    </div>
+    <p class="slatetx" style="margin-top:18px;font-size:14px">Every claim is verified concurrently with <code>Promise.all</code> — one Tavily query per claim.</p>
+  </section>
+
+  <!-- 5 TECH STACK -->
+  <section class="slide light">
+    <div class="eyebrow v">Tech Stack</div>
+    <h1>Built on a modern, type-safe foundation</h1>
+    <div class="grid2" style="margin-top:28px">
+      <div class="card l"><b class="k">Framework</b><div class="muted" style="font-size:15px;margin-top:4px">Next.js 16 (App Router), React 19, TypeScript 5</div></div>
+      <div class="card l"><b class="v">Styling</b><div class="muted" style="font-size:15px;margin-top:4px">Tailwind CSS 4 + Turbopack, custom CSS animations</div></div>
+      <div class="card l"><b class="g">Backend</b><div class="muted" style="font-size:15px;margin-top:4px">Next.js API Routes (server-side orchestration)</div></div>
+      <div class="card l"><b class="k">Web Search</b><div class="muted" style="font-size:15px;margin-top:4px">Tavily Search API — advanced depth, live citations</div></div>
+      <div class="card l"><b class="v">LLM Gateway</b><div class="muted" style="font-size:15px;margin-top:4px">OpenAI-compatible wrapper (OpenAI / Groq / Gemini)</div></div>
+      <div class="card l"><b class="a">Deployment</b><div class="muted" style="font-size:15px;margin-top:4px">Vercel — live, zero-setup demo</div></div>
+    </div>
+    <p style="margin-top:24px;text-align:center;font-style:italic;color:var(--mut);font-size:15px">The gateway is provider-agnostic — the same code targets any OpenAI-compatible endpoint via env vars.</p>
+  </section>
+
+  <!-- 6 SPONSOR -->
+  <section class="slide light">
+    <div class="eyebrow k">Sponsor Technology</div>
+    <h1>Tavily powers the real verification</h1>
+    <div class="grid2" style="margin-top:26px">
+      <div class="card l" style="border:2px solid var(--cyan)">
+        <div class="row" style="align-items:center"><span class="badge dot" style="background:var(--cyan)">T</span><b style="font-size:20px">Tavily Search API</b><span class="pill" style="background:var(--green);color:var(--navy);margin-left:auto">DELIVERED</span></div>
+        <ul style="margin-top:14px">
+          <li><span class="b">•</span><span><code>search_depth: advanced</code> on every query</span></li>
+          <li><span class="b">•</span>One targeted query per extracted claim</li>
+          <li><span class="b">•</span>Snippets, publish dates, relevance scores + citation URLs</li>
+          <li><span class="b">•</span>Grounds every claim against live internet knowledge</li>
+        </ul>
+      </div>
+      <div class="card p" style="border:2px solid var(--violet)">
+        <div class="row" style="align-items:center"><span class="badge dot" style="background:var(--violet);color:#fff">B</span><b style="font-size:19px">Bifrost (Maxim AI) Gateway</b><span class="pill" style="background:var(--amber);color:var(--navy);margin-left:auto">PLANNED</span></div>
+        <ul style="margin-top:14px">
+          <li><span class="b" style="color:var(--violet)">•</span>Intended as the AI gateway for all LLM calls</li>
+          <li><span class="b" style="color:var(--violet)">•</span>Risk-based model routing + prompt-injection guardrails</li>
+          <li><span class="b" style="color:var(--violet)">•</span>Token, latency &amp; cost observability</li>
+          <li><span class="b" style="color:var(--violet)">•</span>Not wired up in the 5-hour window — ships in demo mode</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 FEATURES -->
+  <section class="slide light">
+    <div class="eyebrow g">Features</div>
+    <h1>What judges can try in the demo</h1>
+    <div class="grid3" style="margin-top:26px;grid-auto-rows:1fr">
+      <div class="card l"><b>One-click presets</b><p class="muted" style="font-size:14px;margin-top:6px">Tech hallucination, outdated news &amp; verified-facts scenarios.</p></div>
+      <div class="card l"><b>Animated trust gauge</b><p class="muted" style="font-size:14px;margin-top:6px">SVG 0–100 gauge with contextual labels and smooth easing.</p></div>
+      <div class="card l"><b>Color-coded claim cards</b><p class="muted" style="font-size:14px;margin-top:6px">Verified / outdated / hallucinated / unverifiable, expandable.</p></div>
+      <div class="card l"><b>Source citations</b><p class="muted" style="font-size:14px;margin-top:6px">Direct links with publication dates and relevance scores.</p></div>
+      <div class="card l"><b>Gateway metrics panel</b><p class="muted" style="font-size:14px;margin-top:6px">Live tokens, latency, model routing, cost &amp; guardrail status.</p></div>
+      <div class="card l"><b>JSON report export</b><p class="muted" style="font-size:14px;margin-top:6px">Download the full audit report for archival or sharing.</p></div>
+    </div>
+  </section>
+
+  <!-- 8 SECURITY -->
+  <section class="slide dark">
+    <div class="eyebrow k">Security &amp; Hardening</div>
+    <h1>Production-minded, even in 5 hours</h1>
+    <div class="grid2" style="margin-top:26px">
+      <div class="card d"><b class="k">✓ Rate limiting</b><div class="slatetx" style="font-size:14px;margin-top:4px">10 requests / minute per client on the audit endpoint.</div></div>
+      <div class="card d"><b class="k">✓ Input size caps</b><div class="slatetx" style="font-size:14px;margin-top:4px">20,000-char max, 10-char min — abuse controls.</div></div>
+      <div class="card d"><b class="k">✓ Server-only secrets</b><div class="slatetx" style="font-size:14px;margin-top:4px">All keys read from server env; nothing hits the browser.</div></div>
+      <div class="card d"><b class="k">✓ URL-scheme validation</b><div class="slatetx" style="font-size:14px;margin-top:4px">Source links allowed only if http/https — blocks injection.</div></div>
+      <div class="card d"><b class="k">✓ Honest gateway status</b><div class="slatetx" style="font-size:14px;margin-top:4px">Simulated / failed results are labeled — never faked as live.</div></div>
+      <div class="card d"><b class="k">✓ Guardrail detection</b><div class="slatetx" style="font-size:14px;margin-top:4px">Prompt-injection, credential-leak &amp; context-overflow heuristics.</div></div>
+    </div>
+  </section>
+
+  <!-- 9 5-HOUR REALITY -->
+  <section class="slide light">
+    <div class="eyebrow a">Scope &amp; Timeline</div>
+    <h1>The 5-hour reality: planned vs delivered</h1>
+    <div class="grid3" style="margin-top:22px">
+      <div class="card p row" style="align-items:center;gap:14px"><span class="a" style="font-size:34px;font-weight:800">~5 hrs</span><span class="muted" style="font-size:14px">total build time</span></div>
+      <div class="card p row" style="align-items:center;gap:14px"><span class="r" style="font-size:34px;font-weight:800">Late</span><span class="muted" style="font-size:14px">entry to hackathon</span></div>
+      <div class="card p row" style="align-items:center;gap:14px"><span class="k" style="font-size:34px;font-weight:800">1</span><span class="muted" style="font-size:14px">live sponsor integration (Tavily)</span></div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card l" style="border:1px solid var(--amber)"><b class="a">Planned</b>
+        <ul style="margin-top:10px"><li><span class="b a">○</span>Route all LLM calls through Bifrost (Maxim AI)</li><li><span class="b a">○</span>Live LLM claim extraction + LLM-as-judge</li><li><span class="b a">○</span>Full observability dashboard on the gateway</li></ul></div>
+      <div class="card l" style="border:1px solid var(--green)"><b class="g">Delivered</b>
+        <ul style="margin-top:10px"><li><span class="b g">✓</span>Tavily Search API — the real, working fact-checker</li><li><span class="b g">✓</span>Gateway wrapper + heuristic scorer in demo mode</li><li><span class="b g">✓</span>Live, deployed, zero-setup demo on Vercel</li></ul></div>
+    </div>
+    <p style="margin-top:16px;text-align:center;font-style:italic;color:var(--mut);font-size:14px">We joined late, so we shipped a fully working demo grounded in Tavily over a half-finished Bifrost integration. The gateway is production-shaped — Bifrost drops in later via configuration alone.</p>
+  </section>
+
+  <!-- 10 OUTPUT -->
+  <section class="slide dark">
+    <div class="eyebrow k">The Output</div>
+    <h1>A trust score you can act on</h1>
+    <div class="row" style="margin-top:30px;align-items:center;gap:40px">
+      <div style="flex:0 0 240px;text-align:center">
+        <div style="width:220px;height:220px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
+          background:conic-gradient(var(--cyan) 0turn .72turn, var(--navy2) .72turn 1turn)">
+          <div style="width:168px;height:168px;border-radius:50%;background:var(--navy);display:grid;place-items:center">
+            <div><div style="font-size:52px;font-weight:800">72</div><div class="slatetx" style="font-size:12px;letter-spacing:2px">TRUST SCORE</div></div>
+          </div>
+        </div>
+        <div class="k" style="font-weight:800;margin-top:14px">Mostly Reliable</div>
+      </div>
+      <div class="grow">
+        <div style="display:flex;gap:12px;align-items:center;margin:8px 0"><span style="width:16px;height:16px;border-radius:50%;background:var(--green)"></span><b style="width:150px">Verified</b><span class="slatetx" style="font-size:14px">Sources clearly support the claim</span></div>
+        <div style="display:flex;gap:12px;align-items:center;margin:8px 0"><span style="width:16px;height:16px;border-radius:50%;background:var(--amber)"></span><b style="width:150px">Outdated</b><span class="slatetx" style="font-size:14px">Once true, but the facts have since changed</span></div>
+        <div style="display:flex;gap:12px;align-items:center;margin:8px 0"><span style="width:16px;height:16px;border-radius:50%;background:var(--red)"></span><b style="width:150px">Hallucinated</b><span class="slatetx" style="font-size:14px">Sources contradict it, or it is fabricated</span></div>
+        <div style="display:flex;gap:12px;align-items:center;margin:8px 0"><span style="width:16px;height:16px;border-radius:50%;background:var(--slate)"></span><b style="width:150px">Unverifiable</b><span class="slatetx" style="font-size:14px">Not enough evidence to decide either way</span></div>
+        <div class="card d" style="margin-top:14px"><b class="k" style="font-size:13px;letter-spacing:1.5px">WEIGHTED AGGREGATION</b><p style="color:#e2e8f0;font-size:14px;margin-top:6px">Each verdict is weighted (verified 1.0 · outdated 0.4 · unverifiable 0.3 · hallucinated 0.0) and scaled by confidence to produce the 0–100 score.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 LIMITATIONS -->
+  <section class="slide light">
+    <div class="eyebrow r">Known Limitations</div>
+    <h1>Honest disclosures — a ~5-hour build</h1>
+    <div class="grid2" style="margin-top:24px">
+      <div class="card l"><b class="r">Bifrost in demo mode</b><p class="muted" style="font-size:14px;margin-top:4px">Gateway not wired up in time — without an LLM key, extraction + judging use a deterministic heuristic, not a true LLM.</p></div>
+      <div class="card l"><b class="a">Simulated demo results</b><p class="muted" style="font-size:14px;margin-top:4px">With no keys, verdicts come from a built-in knowledge base tuned for the presets; arbitrary text gets a generic fallback.</p></div>
+      <div class="card l"><b class="a">Heuristic scorer is approximate</b><p class="muted" style="font-size:14px;margin-top:4px">Relevance + keyword based; can mislabel nuanced claims. Trust score is an estimate, not proof of truth.</p></div>
+      <div class="card l"><b class="v">In-memory limiter, no persistence</b><p class="muted" style="font-size:14px;margin-top:4px">Rate limiter resets per instance; audit history isn't stored (export-only JSON).</p></div>
+      <div class="card l"><b class="k">Scope caps</b><p class="muted" style="font-size:14px;margin-top:4px">Up to 10 claims/audit · 20,000-char input · English-focused.</p></div>
+      <div class="card l"><b class="g">3rd-party dependency</b><p class="muted" style="font-size:14px;margin-top:4px">Live mode depends on Tavily / the chosen LLM provider. Not a replacement for professional fact-checking.</p></div>
+    </div>
+  </section>
+
+  <!-- 12 ROADMAP -->
+  <section class="slide light">
+    <div class="eyebrow v">Roadmap</div>
+    <h1>Where DeepAudit goes next</h1>
+    <div style="margin-top:24px">
+      <div class="row" style="align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)"><span class="badge dot" style="background:var(--violet);color:#fff;width:42px;height:42px;font-size:18px">1</span><b style="width:260px">Wire up live Bifrost</b><span class="muted" style="font-size:15px">Finish the Maxim AI gateway integration and enable true LLM-as-judge verification.</span></div>
+      <div class="row" style="align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)"><span class="badge dot" style="background:var(--cyan);width:42px;height:42px;font-size:18px">2</span><b style="width:260px">Persist audit history</b><span class="muted" style="font-size:15px">Store reports (Postgres / Upstash) with shareable report links.</span></div>
+      <div class="row" style="align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)"><span class="badge dot" style="background:var(--green);width:42px;height:42px;font-size:18px">3</span><b style="width:260px">Shared rate limiter</b><span class="muted" style="font-size:15px">Swap in-memory limiter for Upstash Redis for multi-instance scale.</span></div>
+      <div class="row" style="align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)"><span class="badge dot" style="background:var(--amber);width:42px;height:42px;font-size:18px">4</span><b style="width:260px">Streamed verification</b><span class="muted" style="font-size:15px">Batch and stream claims for auditing long documents.</span></div>
+      <div class="row" style="align-items:center;gap:16px;padding:12px 0"><span class="badge dot" style="background:var(--cyan);width:42px;height:42px;font-size:18px">5</span><b style="width:260px">Browser extension</b><span class="muted" style="font-size:15px">Audit any web page or chatbot answer in place, in real time.</span></div>
+    </div>
+  </section>
+
+  <!-- 12 CLOSING -->
+  <section class="slide dark">
+    <div class="eyebrow k" style="letter-spacing:4px">THANK YOU</div>
+    <div class="big" style="margin-top:20px">DeepAudit <span class="k">AI</span></div>
+    <p class="sub" style="margin-top:16px;color:#cbd5e1">Catching AI hallucinations in real time — grounded in the live web.</p>
+    <div class="card d" style="margin-top:28px;max-width:640px;border:1px solid var(--cyan)">
+      <div class="k" style="font-weight:800;letter-spacing:1.5px;font-size:13px">LIVE DEMO</div>
+      <div style="font-size:20px;font-weight:700;margin-top:6px">global-ai-hackathon-deepaudit-proje.vercel.app</div>
+    </div>
+    <p style="margin-top:22px;font-size:15px;color:#e2e8f0">Built by <b class="k">Muhammad Saad Cheema</b> &nbsp;·&nbsp; <span class="slatetx">@saadcheema-6242</span></p>
+    <p class="slatetx" style="margin-top:6px;font-style:italic;font-size:13px">Built in ~5 hours for the HackCulture Global AI Hackathon · Powered by Tavily Search API</p>
+    <div style="position:absolute;bottom:-80px;right:-40px;width:340px;height:340px;border-radius:50%;border:1px solid var(--navy2)"></div>
+  </section>
+
+</div></div>
+
+<div id="hud">
+  <button id="prev" aria-label="Previous">‹</button>
+  <span id="counter">1 / 12</span>
+  <button id="next" aria-label="Next">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const deck = document.getElementById('deck');
+  let i = 0;
+  const counter = document.getElementById('counter');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length-1, n));
+    slides.forEach((s,k)=>s.classList.toggle('active', k===i));
+    counter.textContent = (i+1)+' / '+slides.length;
+    location.hash = i+1;
+  }
+  function fit(){
+    const pad = 24;
+    const sx = (window.innerWidth - pad*2)/1280;
+    const sy = (window.innerHeight - pad*2)/720;
+    deck.style.transform = 'scale('+Math.min(sx,sy)+')';
+  }
+  document.getElementById('next').onclick = (e)=>{e.stopPropagation();show(i+1)};
+  document.getElementById('prev').onclick = (e)=>{e.stopPropagation();show(i-1)};
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') show(i+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(i-1);
+    else if(e.key==='Home') show(0);
+    else if(e.key==='End') show(slides.length-1);
+    else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+  });
+  document.getElementById('stage').addEventListener('click',(e)=>{ if(e.target.closest('a')) return; show(i+1); });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', ()=>{
+    const n = parseInt((location.hash||'').replace('#',''))||1;
+    if(n-1 !== i) show(n-1);
+  });
+  const start = parseInt((location.hash||'').replace('#',''))||1;
+  fit(); show(start-1);
+</script>
+</body>
+</html>
