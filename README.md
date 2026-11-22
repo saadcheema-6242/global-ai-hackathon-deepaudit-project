@@ -189,14 +189,13 @@ deepaudit-ai/
 This was a **~5-hour, late-start build**, so some things are intentionally scoped down. Being transparent:
 
 1. **Bifrost not wired up.** The LLM gateway is a provider-agnostic wrapper that runs in **demo/simulation mode by default**. Without a real LLM key, claim extraction and judging use a **deterministic heuristic**, not a true LLM.
-2. **Demo mode is simulated.** Without Tavily + LLM keys, results come from a built-in knowledge base tuned for the **preset scenarios**; arbitrary text gets a sensible but **generic** fallback verdict.
-3. **Heuristic scorer is approximate.** It relies on source relevance + contradiction keywords + a few curated patterns for the presets. It can **mislabel** nuanced or ambiguous claims.
-4. **In-memory rate limiter.** Resets on restart and isn't shared across serverless instances — fine for a demo, not for scale (swap for Upstash Redis in production).
-5. **No persistence.** Audit history isn't stored; reports are export-only JSON.
-6. **The trust score is a heuristic aggregate, not proof of truth.** Always verify critical claims yourself.
-7. **Scope caps.** Up to 10 claims per audit; input capped at 20,000 characters; English-focused.
-8. **Third-party dependency.** Live mode depends on Tavily / the chosen LLM provider's availability and costs.
-9. **Not a replacement for professional fact-checking.**
+2. **Heuristic scorer is approximate.** It relies on source relevance + contradiction keywords + a few curated patterns for the presets. It can **mislabel** nuanced or ambiguous claims.
+3. **In-memory rate limiter.** Resets on restart and isn't shared across serverless instances — fine for a demo, not for scale (swap for Upstash Redis in production).
+4. **No persistence.** Audit history isn't stored; reports are export-only JSON.
+5. **The trust score is a heuristic aggregate, not proof of truth.** Always verify critical claims yourself.
+6. **Scope caps.** Up to 10 claims per audit; input capped at 20,000 characters; English-focused.
+7. **Third-party dependency.** Live mode depends on Tavily / the chosen LLM provider's availability and costs.
+8. **Not a replacement for professional fact-checking.**
 
 ## 🗺️ Future Work
 
